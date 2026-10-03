@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mon compte — Canilis</title>
+<link rel="stylesheet" href="../styles.css">
+<link rel="icon" href="../icon.png">
+<style>
+  form { display: grid; gap: 12px; margin-top: 12px; }
+  label { color: var(--text); font-weight: 600; }
+  input[type=password] {
+    font: inherit; padding: 12px 14px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  button {
+    font: inherit; font-weight: 700; padding: 13px 16px; border: 0; border-radius: 999px;
+    background: var(--accent); color: #13241f; cursor: pointer;
+  }
+  button:disabled { opacity: .6; cursor: wait; }
+  .msg { margin-top: 12px; }
+  .error { color: #ff8a8a; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+<header class="site"><img src="../icon.png" alt=""><a href="../">Canilis</a></header>
+
+<section id="loading" class="card"><p>Un instant…</p></section>
+
+<section id="recovery" class="card" hidden>
+  <h1 data-fr="Choisis un nouveau mot de passe" data-en="Choose a new password">Choisis un nouveau mot de passe</h1>
+  <form id="form">
+    <label for="pw" data-fr="Nouveau mot de passe (8 caractères minimum)" data-en="New password (at least 8 characters)">Nouveau mot de passe (8 caractères minimum)</label>
+    <input id="pw" type="password" minlength="8" autocomplete="new-password" required>
+    <label for="pw2" data-fr="Confirme le mot de passe" data-en="Confirm the password">Confirme le mot de passe</label>
+    <input id="pw2" type="password" minlength="8" autocomplete="new-password" required>
+    <button id="submit" type="submit" data-fr="Enregistrer" data-en="Save">Enregistrer</button>
+  </form>
+  <p id="formMsg" class="msg" role="status"></p>
+</section>
+
+<section id="done" class="card" hidden>
+  <h1 id="doneTitle"></h1>
+  <p id="doneText"></p>
+</section>
+
+<section id="problem" class="card" hidden>
+  <h1 data-fr="Ce lien n’est plus valable" data-en="This link is no longer valid">Ce lien n’est plus valable</h1>
+  <p data-fr="Il a peut-être expiré ou déjà été utilisé. Dans l’application Canilis, redemande un e-mail (« Mot de passe oublié ») puis ouvre le lien le plus récent."
+     data-en="It may have expired or already been used. In the Canilis app, request a new email (“Forgot password”) and open the most recent link.">Il a peut-être expiré ou déjà été utilisé.</p>
+</section>
+
+<footer><a href="../support/">Aide</a><a href="../confidentialite/">Confidentialité</a></footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  // Clé PUBLIQUE (publishable) : prévue pour être visible ; la sécurité repose sur les règles de la base.
+  var SUPABASE_URL = 'https://fqbijdzrtuhfwtrasiqf.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_j-a3tiJOTlkIHcG4j3c8Rw_aeaUCecv';
+
+  var lang = (navigator.language || 'fr').toLowerCase().indexOf('fr') === 0 ? 'fr' : 'en';
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-' + lang + ']').forEach(function (el) {
+    el.textContent = el.getAttribute('data-' + lang);
+  });
+  var T = {
+    fr: {
+      confirmedTitle: 'Adresse e-mail confirmée',
+      confirmedText: 'C’est tout bon. Tu peux retourner dans l’application Canilis.',
+      savedTitle: 'Mot de passe modifié',
+      savedText: 'Retourne dans l’application Canilis et connecte-toi avec ton nouveau mot de passe.',
+      mismatch: 'Les deux mots de passe ne sont pas identiques.',
+      tooShort: 'Choisis au moins 8 caractères.',
+      failed: 'Impossible d’enregistrer ce mot de passe. Réessaie, ou redemande un e-mail depuis l’application.',
+      nothingTitle: 'Rien à faire ici',
+      nothingText: 'Cette page sert aux liens envoyés par e-mail par l’application Canilis.'
+    },
+    en: {
+      confirmedTitle: 'Email address confirmed',
+      confirmedText: 'All set. You can go back to the Canilis app.',
+      savedTitle: 'Password changed',
+      savedText: 'Go back to the Canilis app and sign in with your new password.',
+      mismatch: 'The two passwords do not match.',
+      tooShort: 'Choose at least 8 characters.',
+      failed: 'Could not save this password. Try again, or request a new email from the app.',
+      nothingTitle: 'Nothing to do here',
+      nothingText: 'This page handles the links emailed by the Canilis app.'
+    }
+  }[lang];
+
+  function show(id) {
+    ['loading', 'recovery', 'done', 'problem'].forEach(function (s) {
+      document.getElementById(s).hidden = s !== id;
+    });
+  }
+  function done(title, text) {
+    document.getElementById('doneTitle').textContent = title;
+    document.getElementById('doneText').textContent = text;
+    show('done');
+  }
+
+  var hash = new URLSearchParams(location.hash.slice(1));
+  var query = new URLSearchParams(location.search);
+  var type = hash.get('type') || query.get('type');
+
+  if (hash.get('error') || query.get('error')) {
+    show('problem');
+  } else if (!window.supabase) {
+    show('problem');
+  } else {
+    var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: false, detectSessionInUrl: true }
+    });
+    client.auth.getSession().then(function (res) {
+      var session = res.data && res.data.session;
+      history.replaceState(null, '', location.pathname); // retire les jetons de l'adresse
+      if (type === 'recovery') {
+        if (!session) return show('problem');
+        show('recovery');
+      } else if (type === 'signup' || type === 'email_change' || type === 'invite' || type === 'magiclink') {
+        if (!session) return show('problem');
+        done(T.confirmedTitle, T.confirmedText);
+      } else {
+        done(T.nothingTitle, T.nothingText);
+      }
+    });
+
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var pw = document.getElementById('pw').value;
+      var msg = document.getElementById('formMsg');
+      msg.className = 'msg error';
+      if (pw.length < 8) { msg.textContent = T.tooShort; return; }
+      if (pw !== document.getElementById('pw2').value) { msg.textContent = T.mismatch; return; }
+      var btn = document.getElementById('submit');
+      btn.disabled = true;
+      client.auth.updateUser({ password: pw }).then(function (res) {
+        btn.disabled = false;
+        if (res.error) { msg.textContent = T.failed; return; }
+        client.auth.signOut();
+        done(T.savedTitle, T.savedText);
+      });
+    });
+  }
+</script>
+</body>
+</html>
