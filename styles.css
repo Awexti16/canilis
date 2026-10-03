@@ -1,0 +1,61 @@
+:root {
+  --bg: #101f1c;
+  --surface: #172b27;
+  --text: #f4efe6;
+  --muted: #b9c2bc;
+  --accent: #e8b58b;
+  --sage: #b8d8bc;
+  --border: rgba(255, 255, 255, 0.09);
+  --warn: #ffcc66;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f3ec;
+    --surface: #ffffff;
+    --text: #13241f;
+    --muted: #4c5b55;
+    --accent: #a5612b;
+    --sage: #3e6b47;
+    --border: rgba(0, 0, 0, 0.1);
+    --warn: #8a5a00;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+}
+main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+header.site { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+header.site img { width: 40px; height: 40px; border-radius: 10px; }
+header.site a { color: var(--text); text-decoration: none; font-weight: 700; font-size: 20px; }
+nav.lang { margin-left: auto; font-size: 15px; }
+h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 22px; margin: 36px 0 8px; }
+h3 { font-size: 18px; margin: 24px 0 4px; }
+p, li { color: var(--muted); }
+strong { color: var(--text); }
+a { color: var(--accent); }
+.updated { font-size: 14px; color: var(--muted); }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.todo { color: var(--warn); font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 12px 0; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--text); }
+td { color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+footer { margin-top: 48px; font-size: 14px; color: var(--muted); }
+footer a { margin-right: 14px; }
+.hero { text-align: center; padding: 24px 0; }
+.hero img { width: 112px; height: 112px; border-radius: 26px; }
+.tagline { font-size: 20px; color: var(--text); }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
